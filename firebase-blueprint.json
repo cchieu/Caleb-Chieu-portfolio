@@ -1,0 +1,79 @@
+{
+  "entities": {
+    "project": {
+      "title": "Project",
+      "description": "Portfolio project item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique project identifier slug" },
+        "title_en": { "type": "string", "description": "English project title" },
+        "title_sw": { "type": "string", "description": "Swahili project title" },
+        "client": { "type": "string", "description": "Client name" },
+        "category_en": { "type": "string", "description": "English category" },
+        "category_sw": { "type": "string", "description": "Swahili category" },
+        "year": { "type": "string", "description": "Completion year" },
+        "role_en": { "type": "string", "description": "English role specification" },
+        "role_sw": { "type": "string", "description": "Swahili role specification" },
+        "bgText": { "type": "string", "description": "Fallback visual placeholder label" },
+        "bgStyle": { "type": "string", "description": "Background gradient/overlay tailwind styling string" },
+        "tags_en": { "type": "array", "description": "English tags list" },
+        "tags_sw": { "type": "array", "description": "Swahili tags list" },
+        "desc_en": { "type": "string", "description": "English description" },
+        "desc_sw": { "type": "string", "description": "Swahili description" },
+        "challenges_en": { "type": "string", "description": "English challenges narrative" },
+        "challenges_sw": { "type": "string", "description": "Swahili challenges narrative" },
+        "solutions_en": { "type": "string", "description": "English solutions narrative" },
+        "solutions_sw": { "type": "string", "description": "Swahili solutions narrative" },
+        "impact_en": { "type": "string", "description": "English business impact description" },
+        "impact_sw": { "type": "string", "description": "Swahili business impact description" },
+        "imageUrl": { "type": "string", "description": "Optional background cover image URL" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Database write timestamp" },
+        "updatedBy": { "type": "string", "description": "User UID who made the update" }
+      },
+      "required": ["id", "title_en", "client", "category_en", "year", "updatedAt"]
+    },
+    "service": {
+      "title": "Service",
+      "description": "A creative design service offered by Caleb",
+      "type": "object",
+      "properties": {
+        "num": { "type": "string", "description": "Numbered sort order ID (e.g. 01)" },
+        "name_en": { "type": "string", "description": "English service name" },
+        "name_sw": { "type": "string", "description": "Swahili service name" },
+        "desc_en": { "type": "string", "description": "English service description" },
+        "desc_sw": { "type": "string", "description": "Swahili service description" },
+        "tags_en": { "type": "array", "description": "English list of sub-capabilities" },
+        "tags_sw": { "type": "array", "description": "Swahili list of sub-capabilities" },
+        "iconName": { "type": "string", "description": "Lucide icon component string" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Database write timestamp" }
+      },
+      "required": ["num", "name_en", "desc_en", "updatedAt"]
+    },
+    "global": {
+      "title": "Global Site Content",
+      "description": "Customizable homepage section override data",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Global section key (e.g. translations, timeline, etc)" },
+        "data": { "type": "object", "description": "Section's stored content mapping" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Database write timestamp" },
+        "updatedBy": { "type": "string", "description": "User UID who made the update" }
+      },
+      "required": ["id", "data", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/projects/{projectId}": {
+      "schema": "project",
+      "description": "Collection of showcase portfolio projects"
+    },
+    "/services/{serviceId}": {
+      "schema": "service",
+      "description": "Collection of core design services"
+    },
+    "/globals/{globalId}": {
+      "schema": "global",
+      "description": "Site-wide general sections overrides"
+    }
+  }
+}

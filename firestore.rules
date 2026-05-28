@@ -1,0 +1,125 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Reusable Security Helper Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Dynamic Administrator verification matching local runtime user
+    function isAdmin() {
+      return isSignedIn() && 
+             request.auth.token.email == 'calebchieu@gmail.com' && 
+             request.auth.token.email_verified == true;
+    }
+
+    // Enforce basic alphanumeric IDs to limit resource attacks
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Strict validation schema for projects
+    function isValidProject(p) {
+      return p.keys().hasAll(['id', 'title_en', 'client', 'category_en', 'year', 'updatedAt']) &&
+             p.id is string && p.id.size() <= 128 &&
+             p.title_en is string && p.title_en.size() <= 200 &&
+             p.client is string && p.client.size() <= 128 &&
+             p.category_en is string && p.category_en.size() <= 100 &&
+             p.year is string && p.year.size() <= 32 &&
+             p.updatedAt is timestamp &&
+             (!('title_sw' in p) || p.title_sw is string && p.title_sw.size() <= 200) &&
+             (!('category_sw' in p) || p.category_sw is string && p.category_sw.size() <= 100) &&
+             (!('role_en' in p) || p.role_en is string && p.role_en.size() <= 128) &&
+             (!('role_sw' in p) || p.role_sw is string && p.role_sw.size() <= 128) &&
+             (!('bgText' in p) || p.bgText is string && p.bgText.size() <= 64) &&
+             (!('bgStyle' in p) || p.bgStyle is string && p.bgStyle.size() <= 256) &&
+             (!('desc_en' in p) || p.desc_en is string && p.desc_en.size() <= 5000) &&
+             (!('desc_sw' in p) || p.desc_sw is string && p.desc_sw.size() <= 5000) &&
+             (!('challenges_en' in p) || p.challenges_en is string && p.challenges_en.size() <= 5000) &&
+             (!('challenges_sw' in p) || p.challenges_sw is string && p.challenges_sw.size() <= 5000) &&
+             (!('solutions_en' in p) || p.solutions_en is string && p.solutions_en.size() <= 5000) &&
+             (!('solutions_sw' in p) || p.solutions_sw is string && p.solutions_sw.size() <= 5000) &&
+             (!('impact_en' in p) || p.impact_en is string && p.impact_en.size() <= 5000) &&
+             (!('impact_sw' in p) || p.impact_sw is string && p.impact_sw.size() <= 5000) &&
+             (!('imageUrl' in p) || p.imageUrl is string && p.imageUrl.size() <= 2048) &&
+             (!('tags_en' in p) || p.tags_en is list && p.tags_en.size() <= 12) &&
+             (!('tags_sw' in p) || p.tags_sw is list && p.tags_sw.size() <= 12);
+    }
+
+    // Strict validation schema for services
+    function isValidService(s) {
+      return s.keys().hasAll(['num', 'name_en', 'desc_en', 'updatedAt']) &&
+             s.num is string && s.num.size() <= 5 &&
+             s.name_en is string && s.name_en.size() <= 128 &&
+             s.desc_en is string && s.desc_en.size() <= 2000 &&
+             s.updatedAt is timestamp &&
+             (!('name_sw' in s) || s.name_sw is string && s.name_sw.size() <= 128) &&
+             (!('desc_sw' in s) || s.desc_sw is string && s.desc_sw.size() <= 2000) &&
+             (!('iconName' in s) || s.iconName is string && s.iconName.size() <= 64) &&
+             (!('tags_en' in s) || s.tags_en is list && s.tags_en.size() <= 10) &&
+             (!('tags_sw' in s) || s.tags_sw is list && s.tags_sw.size() <= 10);
+    }
+
+    // Strict validation schema for globals
+    function isValidGlobal(g) {
+      return g.keys().hasAll(['id', 'data', 'updatedAt']) &&
+             g.id is string && g.id.size() <= 128 &&
+             g.data is map &&
+             g.updatedAt is timestamp;
+    }
+
+    // --- (1) PROJECTS COLLECTION ---
+    match /projects/{projectId} {
+      allow get, list: if true; // Any visitor can read projects
+      
+      allow create: if isAdmin() && 
+                       isValidId(projectId) && 
+                       isValidProject(request.resource.data);
+
+      allow update: if isAdmin() && 
+                       isValidId(projectId) && 
+                       isValidProject(request.resource.data);
+
+      allow delete: if isAdmin() && 
+                       isValidId(projectId);
+    }
+
+    // --- (2) SERVICES COLLECTION ---
+    match /services/{serviceId} {
+      allow get, list: if true; // Any visitor can read services
+      
+      allow create: if isAdmin() && 
+                       isValidId(serviceId) && 
+                       isValidService(request.resource.data);
+
+      allow update: if isAdmin() && 
+                       isValidId(serviceId) && 
+                       isValidService(request.resource.data);
+
+      allow delete: if isAdmin() && 
+                       isValidId(serviceId);
+    }
+
+    // --- (3) GLOBALS COLLECTION ---
+    match /globals/{globalId} {
+      allow get, list: if true; // Any visitor can read globals
+      
+      allow create: if isAdmin() && 
+                       isValidId(globalId) && 
+                       isValidGlobal(request.resource.data);
+
+      allow update: if isAdmin() && 
+                       isValidId(globalId) && 
+                       isValidGlobal(request.resource.data);
+
+      allow delete: if isAdmin() && 
+                       isValidId(globalId);
+    }
+  }
+}
